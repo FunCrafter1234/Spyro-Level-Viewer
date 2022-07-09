@@ -9,7 +9,7 @@ namespace CSRenderEngine
     {
         public static T Next<T>(this T src) where T : struct
         {
-            if (!typeof(T).IsEnum) throw new ArgumentException(String.Format("Argument {0} is not an Enum", typeof(T).FullName));
+            if (!typeof(T).IsEnum) throw new ArgumentException(string.Format("Argument {0} is not an Enum", typeof(T).FullName));
 
             T[] Arr = (T[])Enum.GetValues(src.GetType());
             int j = Array.IndexOf<T>(Arr, src) + 1;
@@ -235,8 +235,8 @@ namespace CSRenderEngine
                 Raylib.DrawFPS(10, 10);
 
                 // Rotation Z
-                matRotZ = Matrix_MakeRotationZ(fTheta * 0.5f);
-                matRotX = Matrix_MakeRotationX(fTheta);
+                matRotZ = Matrix_MakeRotationZ(3.141f); //3.141f;
+                matRotX = Matrix_MakeRotationX(0f);
 
                 mat4x4 matTrans = new mat4x4();
                 matTrans = Matrix_MakeTranslation(0f, 0f, 16f);
@@ -296,7 +296,7 @@ namespace CSRenderEngine
 
                         int nClippedTriangles = 0;
                         triangle[] clipped = new triangle[2];
-                        nClippedTriangles = Trinagle_ClipAgainstPlane(new vec3d(0f, 0f, 0.5f), new vec3d(0f, 0f, 0.5f), triViewed, out clipped[0], out clipped[1]);
+                        nClippedTriangles = Trinagle_ClipAgainstPlane(new vec3d(0f, 0f, 0.5f), new vec3d(0f, 0f, 0.5f), ref triViewed, out clipped[0], out clipped[1]);
 
                         for(int n = 0; n < nClippedTriangles; n++)
                         {
@@ -328,10 +328,10 @@ namespace CSRenderEngine
                 //SORT
                 TrianglesToRaster.Sort(0, TrianglesToRaster.Count, new CompareTris());
 
-                List<triangle> listTriangles = new List<triangle>();
                 foreach (var triToRaster in TrianglesToRaster)
                 {
                     triangle[] clipped = new triangle[2];
+                    List<triangle> listTriangles = new List<triangle>();
                     listTriangles.Add(triToRaster);
                     int nNewTriangles = 1;
 
@@ -346,27 +346,29 @@ namespace CSRenderEngine
 
                             switch(p)
                             {
-                                case 0: nTrisToAdd = Trinagle_ClipAgainstPlane(new vec3d(0f, 0f, 0f), new vec3d(0f, 1f, 0f), test, out clipped[0], out clipped[1]); break;
-                                case 1: nTrisToAdd = Trinagle_ClipAgainstPlane(new vec3d(0f, (float)(Raylib.GetScreenHeight() - 1), 0f), new vec3d(0f, -1f, 0f), test, out clipped[0], out clipped[1]); break;
-                                case 2: nTrisToAdd = Trinagle_ClipAgainstPlane(new vec3d(0f, 0f, 0f), new vec3d(1f, 1f, 0f), test, out clipped[0], out clipped[1]); break;
-                                case 3: nTrisToAdd = Trinagle_ClipAgainstPlane(new vec3d((float)(Raylib.GetScreenWidth() - 1), 0f, 0f), new vec3d(-1f, 0f, 0f), test, out clipped[0], out clipped[1]); break;
+                                case 0: nTrisToAdd = Trinagle_ClipAgainstPlane(new vec3d(0f, 0f, 0f), new vec3d(0f, 1f, 0f), ref test, out clipped[0], out clipped[1]); break;
+                                case 1: nTrisToAdd = Trinagle_ClipAgainstPlane(new vec3d(0f, (float)Raylib.GetScreenHeight() - 1, 0f), new vec3d(0f, -1f, 0f), ref test, out clipped[0], out clipped[1]); break;
+                                case 2: nTrisToAdd = Trinagle_ClipAgainstPlane(new vec3d(0f, 0f, 0f), new vec3d(1f, 0f, 0f), ref test, out clipped[0], out clipped[1]); break;
+                                case 3: nTrisToAdd = Trinagle_ClipAgainstPlane(new vec3d((float)Raylib.GetScreenWidth() - 1, 0f, 0f), new vec3d(-1f, 0f, 0f), ref test, out clipped[0], out clipped[1]); break;
                             }
+
+
+                            for (int w = 0; w < nTrisToAdd; w++)
+                                listTriangles.Add(clipped[w]);
                         }
-
-                        for (int w = 0; w < nTrisToAdd; w++)
-                            listTriangles.Add(clipped[w]);
+                        nNewTriangles = listTriangles.Count;
                     }
-                }
 
-                for(int trinum = 0; trinum < listTriangles.Count; trinum++)
-                {
-                    if (drawMode == DrawMode.Wireframe || drawMode == DrawMode.Both)
+                    for (int trinum = 0; trinum < listTriangles.Count; trinum++)
                     {
-                        DrawCustomTriangle(ConvertVec(listTriangles[trinum].p[0]), ConvertVec(listTriangles[trinum].p[1]), ConvertVec(listTriangles[trinum].p[2]), drawMode == DrawMode.Both ? Color.BLACK : Color.WHITE, 1f);
-                    }
-                    if (drawMode == DrawMode.Model || drawMode == DrawMode.Both)
-                    {
-                        Raylib.DrawTriangle(ConvertVec(listTriangles[trinum].p[0]), ConvertVec(listTriangles[trinum].p[1]), ConvertVec(listTriangles[trinum].p[2]), listTriangles[trinum].clr);
+                        if (drawMode == DrawMode.Wireframe || drawMode == DrawMode.Both)
+                        {
+                            DrawCustomTriangle(ConvertVec(listTriangles[trinum].p[0]), ConvertVec(listTriangles[trinum].p[1]), ConvertVec(listTriangles[trinum].p[2]), drawMode == DrawMode.Both ? Color.BLACK : Color.WHITE, 1f);
+                        }
+                        if (drawMode == DrawMode.Model || drawMode == DrawMode.Both)
+                        {
+                            Raylib.DrawTriangle(ConvertVec(listTriangles[trinum].p[0]), ConvertVec(listTriangles[trinum].p[1]), ConvertVec(listTriangles[trinum].p[2]), listTriangles[trinum].clr);
+                        }
                     }
                 }
 
@@ -451,7 +453,7 @@ namespace CSRenderEngine
 
         public static mat4x4 Matrix_MakeProjection(float fFovDegrees, float fAspectRatio, float fNear, float fFar)
         {
-            float fFovRad = 1.0f / (float)Math.Tan(fFovDegrees * 0.5f / 180.0f * 3.14159f);
+            float fFovRad = 1.0f / (float)Math.Tan(fFovDegrees * 0.5f / 180f * 3.14159f);
             mat4x4 matrix = new mat4x4();
             matrix.m[0,0] = fAspectRatio * fFovRad;
             matrix.m[1,1] = fFovRad;
@@ -560,14 +562,14 @@ namespace CSRenderEngine
             return Vector_Add(lineStart, lineToIntersect);
         }
 
-        public static int Trinagle_ClipAgainstPlane(vec3d plane_p, vec3d plane_n, triangle in_tri, out triangle out_tri1, out triangle out_tri2)
+        public static int Trinagle_ClipAgainstPlane(vec3d plane_p, vec3d plane_n, ref triangle in_tri, out triangle out_tri1, out triangle out_tri2)
         {
             out_tri1 = new triangle();
             out_tri2 = new triangle();
 
             plane_n = Vector_Normalise(plane_n);
 
-            object dist (vec3d p) {
+            float dist (vec3d p) {
                 vec3d n = Vector_Normalise(p);
                 return (plane_n.x * p.x + plane_n.y * p.y + plane_n.z * p.z - Vector_DotProduct(plane_n, plane_p));
             }
@@ -575,9 +577,9 @@ namespace CSRenderEngine
             vec3d[] inside_points = new vec3d[3]; int nInsidePointCount = 0;
             vec3d[] outside_points = new vec3d[3]; int nOutsidePointCount = 0;
 
-            float d0 = (float)dist(in_tri.p[0]);
-            float d1 = (float)dist(in_tri.p[1]);
-            float d2 = (float)dist(in_tri.p[2]);
+            float d1 = dist(in_tri.p[1]);
+            float d2 = dist(in_tri.p[2]);
+            float d0 = dist(in_tri.p[0]);
 
             if (d0 >= 0) { inside_points[nInsidePointCount++] = in_tri.p[0]; }
             else { outside_points[nOutsidePointCount++] = in_tri.p[0]; }
@@ -600,21 +602,25 @@ namespace CSRenderEngine
             if (nInsidePointCount == 1 && nOutsidePointCount == 2)
             {
                 out_tri1.lightdp = in_tri.lightdp;
+                out_tri1.clr = in_tri.clr;
 
                 out_tri1.p[0] = inside_points[0];
                 out_tri1.clr = Color.BLUE;
 
                 out_tri1.p[1] = Vector_IntersectPlane(plane_p, plane_n, inside_points[0], outside_points[0]);
-                out_tri1.p[2] = Vector_IntersectPlane(plane_p, plane_n, inside_points[0], outside_points[0]);
+                out_tri1.p[2] = Vector_IntersectPlane(plane_p, plane_n, inside_points[0], outside_points[1]);
+
+                return 1;
             }
 
             if (nInsidePointCount == 2 && nOutsidePointCount == 1)
             {
                 out_tri1.lightdp = in_tri.lightdp;
                 out_tri2.lightdp = in_tri.lightdp;
-
+                out_tri1.clr = in_tri.clr;
+                out_tri2.clr = in_tri.clr;
                 out_tri1.clr = Color.RED;
-                out_tri2.clr = Color.GREEN; 
+                out_tri2.clr = Color.GREEN;
 
                 out_tri1.p[0] = inside_points[0];
                 out_tri1.p[1] = inside_points[1];
