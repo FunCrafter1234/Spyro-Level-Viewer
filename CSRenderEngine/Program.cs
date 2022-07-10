@@ -164,7 +164,7 @@ namespace CSRenderEngine
         static DrawMode drawMode = DrawMode.Model;
 
         static float fDist = 5f;
-        static float fSpeed = 10f;
+        static float fSpeed = 1f;
 
 
         static void Main(string[] args)
@@ -179,7 +179,27 @@ namespace CSRenderEngine
             //Raylib.InitWindow(256 * 4, 240 * 4, "CSharp3D-Demo");
             Raylib.InitWindow(1080, 720, "CSharp3D-Demo");
 
-            meshCube.LoadFromObjectFile(@"C:\Users\Marvin\Desktop\simple3D\mountains.obj");
+            meshCube = new mesh();
+
+            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(0.0f, 0.0f, 0.0f), new vec3d(0.0f, 1.0f, 0.0f), new vec3d(1.0f, 1.0f, 0.0f) }));
+            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(0.0f, 0.0f, 0.0f), new vec3d(1.0f, 1.0f, 0.0f), new vec3d(1.0f, 0.0f, 0.0f) }));
+
+            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(1.0f, 0.0f, 0.0f), new vec3d(1.0f, 1.0f, 0.0f), new vec3d(1.0f, 1.0f, 1.0f) }));
+            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(1.0f, 0.0f, 0.0f), new vec3d(1.0f, 1.0f, 1.0f), new vec3d(1.0f, 0.0f, 1.0f) }));
+
+            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(1.0f, 0.0f, 1.0f), new vec3d(1.0f, 1.0f, 1.0f), new vec3d(0.0f, 1.0f, 1.0f) }));
+            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(1.0f, 0.0f, 1.0f), new vec3d(0.0f, 1.0f, 1.0f), new vec3d(0.0f, 0.0f, 1.0f) }));
+
+            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(0.0f, 0.0f, 1.0f), new vec3d(0.0f, 1.0f, 1.0f), new vec3d(0.0f, 1.0f, 0.0f) }));
+            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(0.0f, 0.0f, 1.0f), new vec3d(0.0f, 1.0f, 0.0f), new vec3d(0.0f, 0.0f, 0.0f) }));
+
+            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(0.0f, 1.0f, 0.0f), new vec3d(0.0f, 1.0f, 1.0f), new vec3d(1.0f, 1.0f, 1.0f) }));
+            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(0.0f, 1.0f, 0.0f), new vec3d(1.0f, 1.0f, 1.0f), new vec3d(1.0f, 1.0f, 0.0f) }));
+
+            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(1.0f, 0.0f, 1.0f), new vec3d(0.0f, 0.0f, 1.0f), new vec3d(0.0f, 0.0f, 0.0f) }));
+            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(1.0f, 0.0f, 1.0f), new vec3d(0.0f, 0.0f, 0.0f), new vec3d(1.0f, 0.0f, 0.0f) }));
+
+            //meshCube.LoadFromObjectFile(@"C:\Users\Marvin\Desktop\simple3D\mountains.obj");
             matProj = Matrix_MakeProjection(90f, (float)Raylib.GetScreenHeight() / (float)Raylib.GetScreenWidth(), 0.1f, 1000f);
 
             stopWatch.Start();
