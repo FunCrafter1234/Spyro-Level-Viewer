@@ -164,6 +164,7 @@ namespace CSRenderEngine
         static DrawMode drawMode = DrawMode.Model;
 
         static float fDist = 5f;
+        static float fSpeed = 10f;
 
 
         static void Main(string[] args)
@@ -192,18 +193,18 @@ namespace CSRenderEngine
                 Raylib.ClearBackground(Color.BLACK);
 
                 if (Raylib.IsKeyDown(KeyboardKey.KEY_UP))
-                    vCamera.y -= 0.01f;
+                    vCamera.y -= 0.01f * fSpeed;
 
                 if (Raylib.IsKeyDown(KeyboardKey.KEY_DOWN))
-                    vCamera.y += 0.01f;
+                    vCamera.y += 0.01f * fSpeed;
 
                 if (Raylib.IsKeyDown(KeyboardKey.KEY_LEFT))
-                    vCamera.x -= 0.01f;
+                    vCamera.x -= 0.01f * fSpeed;
 
                 if (Raylib.IsKeyDown(KeyboardKey.KEY_RIGHT))
-                    vCamera.x += 0.01f;
+                    vCamera.x += 0.01f * fSpeed;
 
-                vec3d vForward = Vector_Mul(vLookDir, 0.01f);
+                vec3d vForward = Vector_Mul(vLookDir, 0.01f * fSpeed);
 
                 if (Raylib.IsKeyDown(KeyboardKey.KEY_W))
                     vCamera = Vector_Add(vCamera, vForward);
@@ -212,10 +213,10 @@ namespace CSRenderEngine
                     vCamera = Vector_Sub(vCamera, vForward);
 
                 if (Raylib.IsKeyDown(KeyboardKey.KEY_A))
-                    fYaw -= 0.001f;
+                    fYaw += 0.001f * fSpeed;
 
                 if (Raylib.IsKeyDown(KeyboardKey.KEY_D))
-                    fYaw += 0.001f;
+                    fYaw -= 0.001f * fSpeed;
 
                 if (Raylib.IsKeyReleased(KeyboardKey.KEY_F1))
                     drawMode = drawMode.Next();
@@ -363,11 +364,12 @@ namespace CSRenderEngine
                     {
                         if (drawMode == DrawMode.Wireframe || drawMode == DrawMode.Both)
                         {
-                            DrawCustomTriangle(ConvertVec(listTriangles[trinum].p[0]), ConvertVec(listTriangles[trinum].p[1]), ConvertVec(listTriangles[trinum].p[2]), drawMode == DrawMode.Both ? Color.BLACK : Color.WHITE, 1f);
+                            DrawCustomTriangle(ConvertVec(listTriangles[trinum].p[0]), ConvertVec(listTriangles[trinum].p[1]), ConvertVec(listTriangles[trinum].p[2]), drawMode == DrawMode.Both ? Color.RED : Color.WHITE, 1f);
                         }
                         if (drawMode == DrawMode.Model || drawMode == DrawMode.Both)
                         {
                             Raylib.DrawTriangle(ConvertVec(listTriangles[trinum].p[0]), ConvertVec(listTriangles[trinum].p[1]), ConvertVec(listTriangles[trinum].p[2]), listTriangles[trinum].clr);
+                            Raylib.DrawTriangle(ConvertVec(listTriangles[trinum].p[2]), ConvertVec(listTriangles[trinum].p[1]), ConvertVec(listTriangles[trinum].p[0]), listTriangles[trinum].clr);
                         }
                     }
                 }
@@ -577,9 +579,9 @@ namespace CSRenderEngine
             vec3d[] inside_points = new vec3d[3]; int nInsidePointCount = 0;
             vec3d[] outside_points = new vec3d[3]; int nOutsidePointCount = 0;
 
+            float d0 = dist(in_tri.p[0]);
             float d1 = dist(in_tri.p[1]);
             float d2 = dist(in_tri.p[2]);
-            float d0 = dist(in_tri.p[0]);
 
             if (d0 >= 0) { inside_points[nInsidePointCount++] = in_tri.p[0]; }
             else { outside_points[nOutsidePointCount++] = in_tri.p[0]; }
@@ -605,7 +607,7 @@ namespace CSRenderEngine
                 out_tri1.clr = in_tri.clr;
 
                 out_tri1.p[0] = inside_points[0];
-                out_tri1.clr = Color.BLUE;
+                //out_tri1.clr = Color.BLUE;
 
                 out_tri1.p[1] = Vector_IntersectPlane(plane_p, plane_n, inside_points[0], outside_points[0]);
                 out_tri1.p[2] = Vector_IntersectPlane(plane_p, plane_n, inside_points[0], outside_points[1]);
@@ -619,8 +621,8 @@ namespace CSRenderEngine
                 out_tri2.lightdp = in_tri.lightdp;
                 out_tri1.clr = in_tri.clr;
                 out_tri2.clr = in_tri.clr;
-                out_tri1.clr = Color.RED;
-                out_tri2.clr = Color.GREEN;
+               //out_tri1.clr = Color.RED;
+               //out_tri2.clr = Color.GREEN;
 
                 out_tri1.p[0] = inside_points[0];
                 out_tri1.p[1] = inside_points[1];
