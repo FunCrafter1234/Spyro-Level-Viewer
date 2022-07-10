@@ -38,6 +38,17 @@ namespace CSRenderEngine
         }
     }
 
+    public struct vec2d
+    {
+        public float u, v;
+
+        public vec2d(float u, float v)
+        {
+            this.u = u;
+            this.v = v;
+        }
+    }
+
     public struct vec3d
     {
         public float x, y, z, w;
@@ -56,10 +67,12 @@ namespace CSRenderEngine
         public vec3d[] p;
         public float lightdp;
         public Color clr;
+        public vec2d[] t;
 
         public triangle()
         {
             p = new vec3d[3];
+            t = new vec2d[3];
             lightdp = 0f;
             clr = new Color();
             clr = calc_light();
@@ -69,6 +82,17 @@ namespace CSRenderEngine
         {
             p = _p;
             lightdp = 0f;
+            t = new vec2d[3];
+            clr = new Color();
+            clr = calc_light();
+        }
+
+        public triangle(vec3d[] _p, vec2d[] _t)
+        {
+            p = _p;
+            t = _t;
+            lightdp = 0f;
+            t = new vec2d[3];
             clr = new Color();
             clr = calc_light();
         }
@@ -77,6 +101,7 @@ namespace CSRenderEngine
         {
             p = _p;
             lightdp = _light;
+            t = new vec2d[3];
             clr = new Color();
             clr = calc_light();
         }
@@ -88,6 +113,7 @@ namespace CSRenderEngine
             p[1] = std.p[1];
             p[2] = std.p[2];
             lightdp = _light;
+            t = new vec2d[3];
             clr = new Color();
             clr = calc_light();
         }
@@ -124,12 +150,22 @@ namespace CSRenderEngine
                 if (line[0] == 'v')
                 {
                     string[] splitted = line.Split(' ');
+                    if (splitted[0] == "vt")
+                        continue;
                     verts.Add(new vec3d(float.Parse(splitted[1], CultureInfo.InvariantCulture.NumberFormat), float.Parse(splitted[2], CultureInfo.InvariantCulture.NumberFormat), float.Parse(splitted[3], CultureInfo.InvariantCulture.NumberFormat)));
                 }
 
                 if (line[0] == 'f')
                 {
                     string[] splitted = line.Split(' ');
+
+                    for(int j = 0; j < splitted.Length; j++)
+                    {
+                        int index = splitted[j].IndexOf("/");
+                        if (index >= 0)
+                            splitted[j] = splitted[j].Substring(0, index);
+                    }
+
                     int[] arr = new int[3];
                     arr[0] = Convert.ToInt32(splitted[1]);
                     arr[1] = Convert.ToInt32(splitted[2]);
@@ -164,7 +200,7 @@ namespace CSRenderEngine
         static DrawMode drawMode = DrawMode.Model;
 
         static float fDist = 5f;
-        static float fSpeed = 1f;
+        static float fSpeed = 10f;
 
 
         static void Main(string[] args)
@@ -181,25 +217,25 @@ namespace CSRenderEngine
 
             meshCube = new mesh();
 
-            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(0.0f, 0.0f, 0.0f), new vec3d(0.0f, 1.0f, 0.0f), new vec3d(1.0f, 1.0f, 0.0f) }));
-            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(0.0f, 0.0f, 0.0f), new vec3d(1.0f, 1.0f, 0.0f), new vec3d(1.0f, 0.0f, 0.0f) }));
+            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(0.0f, 0.0f, 0.0f), new vec3d(0.0f, 1.0f, 0.0f), new vec3d(1.0f, 1.0f, 0.0f) }, new vec2d[] { new vec2d(0f, 1f), new vec2d(0f, 0f), new vec2d(1f, 0f) }));
+            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(0.0f, 0.0f, 0.0f), new vec3d(1.0f, 1.0f, 0.0f), new vec3d(1.0f, 0.0f, 0.0f) }, new vec2d[] { new vec2d(0f, 1f), new vec2d(1f, 0f), new vec2d(1f, 1f) }));
 
-            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(1.0f, 0.0f, 0.0f), new vec3d(1.0f, 1.0f, 0.0f), new vec3d(1.0f, 1.0f, 1.0f) }));
-            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(1.0f, 0.0f, 0.0f), new vec3d(1.0f, 1.0f, 1.0f), new vec3d(1.0f, 0.0f, 1.0f) }));
+            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(1.0f, 0.0f, 0.0f), new vec3d(1.0f, 1.0f, 0.0f), new vec3d(1.0f, 1.0f, 1.0f) }, new vec2d[] { new vec2d(0f, 1f), new vec2d(0f, 0f), new vec2d(1f, 0f) }));
+            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(1.0f, 0.0f, 0.0f), new vec3d(1.0f, 1.0f, 1.0f), new vec3d(1.0f, 0.0f, 1.0f) }, new vec2d[] { new vec2d(0f, 1f), new vec2d(1f, 0f), new vec2d(1f, 1f) }));
 
-            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(1.0f, 0.0f, 1.0f), new vec3d(1.0f, 1.0f, 1.0f), new vec3d(0.0f, 1.0f, 1.0f) }));
-            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(1.0f, 0.0f, 1.0f), new vec3d(0.0f, 1.0f, 1.0f), new vec3d(0.0f, 0.0f, 1.0f) }));
+            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(1.0f, 0.0f, 1.0f), new vec3d(1.0f, 1.0f, 1.0f), new vec3d(0.0f, 1.0f, 1.0f) }, new vec2d[] { new vec2d(0f, 1f), new vec2d(0f, 0f), new vec2d(1f, 0f) }));
+            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(1.0f, 0.0f, 1.0f), new vec3d(0.0f, 1.0f, 1.0f), new vec3d(0.0f, 0.0f, 1.0f) }, new vec2d[] { new vec2d(0f, 1f), new vec2d(1f, 0f), new vec2d(1f, 1f) }));
 
-            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(0.0f, 0.0f, 1.0f), new vec3d(0.0f, 1.0f, 1.0f), new vec3d(0.0f, 1.0f, 0.0f) }));
-            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(0.0f, 0.0f, 1.0f), new vec3d(0.0f, 1.0f, 0.0f), new vec3d(0.0f, 0.0f, 0.0f) }));
+            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(0.0f, 0.0f, 1.0f), new vec3d(0.0f, 1.0f, 1.0f), new vec3d(0.0f, 1.0f, 0.0f) }, new vec2d[] { new vec2d(0f, 1f), new vec2d(0f, 0f), new vec2d(1f, 0f) }));
+            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(0.0f, 0.0f, 1.0f), new vec3d(0.0f, 1.0f, 0.0f), new vec3d(0.0f, 0.0f, 0.0f) }, new vec2d[] { new vec2d(0f, 1f), new vec2d(1f, 0f), new vec2d(1f, 1f) }));
 
-            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(0.0f, 1.0f, 0.0f), new vec3d(0.0f, 1.0f, 1.0f), new vec3d(1.0f, 1.0f, 1.0f) }));
-            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(0.0f, 1.0f, 0.0f), new vec3d(1.0f, 1.0f, 1.0f), new vec3d(1.0f, 1.0f, 0.0f) }));
+            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(0.0f, 1.0f, 0.0f), new vec3d(0.0f, 1.0f, 1.0f), new vec3d(1.0f, 1.0f, 1.0f) }, new vec2d[] { new vec2d(0f, 1f), new vec2d(0f, 0f), new vec2d(1f, 0f) }));
+            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(0.0f, 1.0f, 0.0f), new vec3d(1.0f, 1.0f, 1.0f), new vec3d(1.0f, 1.0f, 0.0f) }, new vec2d[] { new vec2d(0f, 1f), new vec2d(1f, 0f), new vec2d(1f, 1f) }));
 
-            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(1.0f, 0.0f, 1.0f), new vec3d(0.0f, 0.0f, 1.0f), new vec3d(0.0f, 0.0f, 0.0f) }));
-            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(1.0f, 0.0f, 1.0f), new vec3d(0.0f, 0.0f, 0.0f), new vec3d(1.0f, 0.0f, 0.0f) }));
+            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(1.0f, 0.0f, 1.0f), new vec3d(0.0f, 0.0f, 1.0f), new vec3d(0.0f, 0.0f, 0.0f) }, new vec2d[] { new vec2d(0f, 1f), new vec2d(0f, 0f), new vec2d(1f, 0f) }));
+            meshCube.tris.Add(new triangle(new vec3d[] { new vec3d(1.0f, 0.0f, 1.0f), new vec3d(0.0f, 0.0f, 0.0f), new vec3d(1.0f, 0.0f, 0.0f) }, new vec2d[] { new vec2d(0f, 1f), new vec2d(1f, 0f), new vec2d(1f, 1f) }));
 
-            //meshCube.LoadFromObjectFile(@"C:\Users\Marvin\Desktop\simple3D\mountains.obj");
+            meshCube.LoadFromObjectFile(@"C:\Users\Marvin\Desktop\simple3D\Spyro\Artisans-Hub.obj");
             matProj = Matrix_MakeProjection(90f, (float)Raylib.GetScreenHeight() / (float)Raylib.GetScreenWidth(), 0.1f, 1000f);
 
             stopWatch.Start();
@@ -289,6 +325,9 @@ namespace CSRenderEngine
                     triTransformed.p[0] = Matrix_MultiplyVector(matWorld, tri.p[0]);
                     triTransformed.p[1] = Matrix_MultiplyVector(matWorld, tri.p[1]);
                     triTransformed.p[2] = Matrix_MultiplyVector(matWorld, tri.p[2]);
+                    triTransformed.t[0] = tri.t[0];
+                    triTransformed.t[1] = tri.t[1];
+                    triTransformed.t[2] = tri.t[2];
 
                     vec3d normal = new vec3d(0f, 0f, 0f), line1 = new vec3d(0f, 0f, 0f), line2 = new vec3d(0f, 0f, 0f);
                     line1 = Vector_Sub(triTransformed.p[1], triTransformed.p[0]);
@@ -314,16 +353,22 @@ namespace CSRenderEngine
                         triViewed.p[0] = Matrix_MultiplyVector(matView, triTransformed.p[0]);
                         triViewed.p[1] = Matrix_MultiplyVector(matView, triTransformed.p[1]);
                         triViewed.p[2] = Matrix_MultiplyVector(matView, triTransformed.p[2]);
+                        triViewed.t[0] = triTransformed.t[0];
+                        triViewed.t[1] = triTransformed.t[1];
+                        triViewed.t[2] = triTransformed.t[2];
 
                         int nClippedTriangles = 0;
                         triangle[] clipped = new triangle[2];
-                        nClippedTriangles = Trinagle_ClipAgainstPlane(new vec3d(0f, 0f, 0.5f), new vec3d(0f, 0f, 0.5f), ref triViewed, out clipped[0], out clipped[1]);
+                        nClippedTriangles = Trinagle_ClipAgainstPlane(new vec3d(0f, 0f, 1f), new vec3d(0f, 0f, 1f), ref triViewed, out clipped[0], out clipped[1]);
 
                         for(int n = 0; n < nClippedTriangles; n++)
                         {
                             triProjected.p[0] = Matrix_MultiplyVector(matProj, clipped[n].p[0]);
                             triProjected.p[1] = Matrix_MultiplyVector(matProj, clipped[n].p[1]);
                             triProjected.p[2] = Matrix_MultiplyVector(matProj, clipped[n].p[2]);
+                            triProjected.t[0] = clipped[n].t[0];
+                            triProjected.t[1] = clipped[n].t[1];
+                            triProjected.t[2] = clipped[n].t[2];
 
                             triProjected.p[0] = Vector_Div(triProjected.p[0], triProjected.p[0].w + fDist);
                             triProjected.p[1] = Vector_Div(triProjected.p[1], triProjected.p[1].w + fDist);
@@ -572,13 +617,13 @@ namespace CSRenderEngine
             return v;
         }
 
-        public static vec3d Vector_IntersectPlane(vec3d plane_p, vec3d plane_n, vec3d lineStart, vec3d lineEnd)
+        public static vec3d Vector_IntersectPlane(vec3d plane_p, vec3d plane_n, vec3d lineStart, vec3d lineEnd, out float t)
         {
             plane_n = Vector_Normalise(plane_n);
             float plane_d = -Vector_DotProduct(plane_n, plane_p);
             float ad = Vector_DotProduct(lineStart, plane_n);
             float bd = Vector_DotProduct(lineEnd, plane_n);
-            float t = (-plane_d - ad) / (bd - ad);
+            t = (-plane_d - ad) / (bd - ad);
             vec3d lineStartToEnd = Vector_Sub(lineEnd, lineStart);
             vec3d lineToIntersect = Vector_Mul(lineStartToEnd, t);
             return Vector_Add(lineStart, lineToIntersect);
@@ -599,16 +644,19 @@ namespace CSRenderEngine
             vec3d[] inside_points = new vec3d[3]; int nInsidePointCount = 0;
             vec3d[] outside_points = new vec3d[3]; int nOutsidePointCount = 0;
 
+            vec2d[] inside_tex = new vec2d[3]; int nInsideTextCount = 0;
+            vec2d[] outside_tex = new vec2d[3]; int nOutsideTextCount = 0;
+
             float d0 = dist(in_tri.p[0]);
             float d1 = dist(in_tri.p[1]);
             float d2 = dist(in_tri.p[2]);
 
-            if (d0 >= 0) { inside_points[nInsidePointCount++] = in_tri.p[0]; }
-            else { outside_points[nOutsidePointCount++] = in_tri.p[0]; }
-            if (d1 >= 0) { inside_points[nInsidePointCount++] = in_tri.p[1]; }
-            else { outside_points[nOutsidePointCount++] = in_tri.p[1]; }
-            if (d2 >= 0) { inside_points[nInsidePointCount++] = in_tri.p[2]; }
-            else { outside_points[nOutsidePointCount++] = in_tri.p[2]; }
+            if (d0 >= 0) { inside_points[nInsidePointCount++] = in_tri.p[0]; inside_tex[nInsideTextCount++] = in_tri.t[0]; }
+            else { outside_points[nOutsidePointCount++] = in_tri.p[0]; outside_tex[nOutsideTextCount++] = in_tri.t[0]; }
+            if (d1 >= 0) { inside_points[nInsidePointCount++] = in_tri.p[1]; inside_tex[nInsideTextCount++] = in_tri.t[1]; }
+            else { outside_points[nOutsidePointCount++] = in_tri.p[1]; outside_tex[nOutsideTextCount++] = in_tri.t[1]; }
+            if (d2 >= 0) { inside_points[nInsidePointCount++] = in_tri.p[2]; inside_tex[nInsideTextCount++] = in_tri.t[2]; }
+            else { outside_points[nOutsidePointCount++] = in_tri.p[2]; outside_tex[nOutsideTextCount++] = in_tri.t[2]; }
 
             if(nInsidePointCount == 0)
             {
@@ -627,10 +675,17 @@ namespace CSRenderEngine
                 out_tri1.clr = in_tri.clr;
 
                 out_tri1.p[0] = inside_points[0];
-                //out_tri1.clr = Color.BLUE;
+                out_tri1.clr = Color.BLUE;
 
-                out_tri1.p[1] = Vector_IntersectPlane(plane_p, plane_n, inside_points[0], outside_points[0]);
-                out_tri1.p[2] = Vector_IntersectPlane(plane_p, plane_n, inside_points[0], outside_points[1]);
+                float t;
+                out_tri1.p[1] = Vector_IntersectPlane(plane_p, plane_n, inside_points[0], outside_points[0], out t);
+                out_tri1.t[1].u = t * (outside_tex[0].u - inside_tex[0].u) + inside_tex[0].u;
+                out_tri1.t[1].v = t * (outside_tex[0].v - inside_tex[0].v) + inside_tex[0].v;
+
+
+                out_tri1.p[2] = Vector_IntersectPlane(plane_p, plane_n, inside_points[0], outside_points[1], out t);
+                out_tri1.t[2].u = t * (outside_tex[0].u - inside_tex[0].u) + inside_tex[0].u;
+                out_tri1.t[2].v = t * (outside_tex[0].v - inside_tex[0].v) + inside_tex[0].v;
 
                 return 1;
             }
@@ -641,16 +696,25 @@ namespace CSRenderEngine
                 out_tri2.lightdp = in_tri.lightdp;
                 out_tri1.clr = in_tri.clr;
                 out_tri2.clr = in_tri.clr;
-               //out_tri1.clr = Color.RED;
-               //out_tri2.clr = Color.GREEN;
+                out_tri1.clr = Color.RED;
+                out_tri2.clr = Color.GREEN;
 
                 out_tri1.p[0] = inside_points[0];
                 out_tri1.p[1] = inside_points[1];
-                out_tri1.p[2] = Vector_IntersectPlane(plane_p, plane_n, inside_points[0], outside_points[0]);
+                out_tri1.t[0] = inside_tex[0];
+                out_tri1.t[1] = inside_tex[1];
+                float t;
+                out_tri1.p[2] = Vector_IntersectPlane(plane_p, plane_n, inside_points[0], outside_points[0], out t);
+                out_tri1.t[2].u = t * (outside_tex[0].u - inside_tex[0].u) + inside_tex[0].u;
+                out_tri1.t[2].v = t * (outside_tex[0].v - inside_tex[0].v) + inside_tex[0].v;
 
                 out_tri2.p[0] = inside_points[1];
                 out_tri2.p[1] = out_tri1.p[2];
-                out_tri2.p[2] = Vector_IntersectPlane(plane_p, plane_n, inside_points[1], outside_points[0]);
+                out_tri2.t[0] = inside_tex[0];
+                out_tri2.t[1] = inside_tex[1];
+                out_tri2.p[2] = Vector_IntersectPlane(plane_p, plane_n, inside_points[1], outside_points[0], out t);
+                out_tri2.t[2].u = t * (outside_tex[0].u - inside_tex[0].u) + inside_tex[0].u;
+                out_tri2.t[2].v = t * (outside_tex[0].v - inside_tex[0].v) + inside_tex[0].v;
 
                 return 2;
             }
